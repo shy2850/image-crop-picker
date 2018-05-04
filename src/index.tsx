@@ -30,6 +30,7 @@ class ImageCropPicker extends HTMLElement {
         let { name, value } = attr
         if (value) {
             switch (attr.name) {
+                case 'zoomRatio':
                 case 'maxSize':
                 case 'width':
                 case 'height':
@@ -44,8 +45,8 @@ class ImageCropPicker extends HTMLElement {
     constructor() {
         super();
         const t = this
-        const { className = '', title = '', innerText, dispatchEvent } = t
-        const { accept = 'image/*', maxSize = 102400, name = NAME, width = 300, height = 200 } = t.getAllAttributes()
+        const { className = '', title = '', innerText } = t
+        const { accept = 'image/*', zoomRatio = .05, maxSize = 102400, name = NAME, width = 300, height = 200 } = t.getAllAttributes()
 
         const canvas: HTMLCanvasElement = <canvas tabIndex="-1" width={width} height={height}></canvas>
         const ctx = canvas.getContext('2d')
@@ -65,10 +66,10 @@ class ImageCropPicker extends HTMLElement {
             const { x, y } = position
             const { width, height } = img
             ctx.clearRect(0, 0, width, height)
-            ctx.drawImage(img, x, y, width, height, 0, 0, width * zoom, height * zoom)
+            ctx.drawImage(img, 0, 0, width, height, x, y, width * zoom, height * zoom)
             canvas.toBlob(result => {
                 t['files'] = [result]
-                dispatchEvent(new CustomEvent('change'))
+                t.dispatchEvent(new CustomEvent('change'))
             })
         }
         const onPickFile = function (e) {
@@ -86,14 +87,23 @@ class ImageCropPicker extends HTMLElement {
             preventDefault(e)
         }
         
+        canvas.addEventListener('mousewheel', e => {
+            if (e.deltaY > 0) {
+                zoom += zoomRatio
+            } else {
+                zoom -= zoomRatio
+            }
+            drawImage()
+            preventDefault(e)
+        })
         canvas.addEventListener('keydown', e => {
             switch (e.keyCode) {
-                case 37: position.x++; break;
-                case 38: position.y++; break;
-                case 39: position.x--; break;
-                case 40: position.y--; break;
-                case 187: zoom += .05; break;
-                case 189: zoom -= .05; break;
+                case 37: position.x--; break;
+                case 38: position.y--; break;
+                case 39: position.x++; break;
+                case 40: position.y++; break;
+                case 187: zoom += zoomRatio; break;
+                case 189: zoom -= zoomRatio; break;
             }
             drawImage()
             preventDefault(e)
@@ -109,8 +119,8 @@ class ImageCropPicker extends HTMLElement {
             if (touchPosition) {
                 const ev = e.touches ? e.touches[0] : e
                 const { clientX, clientY } = ev
-                position.x += touchPosition.clientX - clientX
-                position.y += touchPosition.clientY - clientY
+                position.x += clientX - touchPosition.clientX
+                position.y += clientY - touchPosition.clientY
                 drawImage()
                 touchPosition = { clientX, clientY }
             }

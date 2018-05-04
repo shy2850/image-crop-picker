@@ -1,6 +1,6 @@
 {
   "name": "image-crop-picker",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "image-crop-picker like input:file via webcomponents",
   "main": "index.js",
   "scripts": {
