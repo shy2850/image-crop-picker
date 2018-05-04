@@ -10,7 +10,7 @@ module.exports = [{
     ],
     output: {
         sourcemap: true,
-        file: 'index.js',
+        file: 'bundle.js',
         format: 'iife'
     }
 }]
